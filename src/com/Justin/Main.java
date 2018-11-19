@@ -14,10 +14,7 @@ public class Main {
             String pw = "db password";
         }*/
 
-        DBProp connProperties = new DBProp();
-        String db = connProperties.db;
-        String user = connProperties.user;
-        String pw = connProperties.pw;
+
 
         Boolean done = false;
 
@@ -43,10 +40,8 @@ public class Main {
                         break;
                     case "r":
                         System.out.println("You want to read");
-
-                        //output tables/columns
-                        //get table to read from
-                        //Get columns to read
+                        dbRead();
+                        done = true;
                         break;
                     case "u":
                         System.out.println("You want to update");
@@ -72,23 +67,68 @@ public class Main {
             }
         }
 
+
         /*
-        try {
-            Connection conn = DriverManager.getConnection(db, user, pw);
-            Statement qry = conn.createStatement();
-            String sql = "select * from FoodGroups";
-            ResultSet rs = qry.executeQuery(sql);
 
-            while(rs.next()){
-                System.out.println(rs.getString("idFoodGroups") + " " + rs.getString("GroupName"));
-            }
-
-        } catch (SQLException e){
-            System.out.println("Error: ");
-            e.printStackTrace();
-        }
         */
 
     }
+
+    public static void dbRead(){
+        //output tables/columns
+        //get table to read
+        //get columns to read
+
+        System.out.println("We will read now");
+
+        ResultSet tableList = dbquery("show tables");
+
+        try{
+            while (tableList.next()){
+                System.out.println("Table: " + tableList.getString("Tables_In_JavaTest"));
+            }
+        } catch (SQLException e){
+            System.out.println("ERROR: Null result set");
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+    public static ResultSet dbquery(String q){
+
+        DBProp connProperties = new DBProp();
+        String db = connProperties.db;
+        String user = connProperties.user;
+        String pw = connProperties.pw;
+
+        try {
+            Connection conn = DriverManager.getConnection(db, user, pw);
+            Statement qry = conn.createStatement();
+            ResultSet rs = qry.executeQuery(q);
+
+            return rs;
+
+
+        } catch (SQLException e){
+            System.out.println("Query Error. Query: " + q);
+            e.printStackTrace();
+        }
+
+        return null;
+
+    }
+
+
 
 }
