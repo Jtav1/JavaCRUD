@@ -5,6 +5,9 @@ import java.util.Scanner;
 
 public class Main {
 
+    static String tableToManipulate = "";
+
+
     public static void main(String[] args) {
 
         //dbprop format
@@ -31,17 +34,12 @@ public class Main {
             } else {
                 switch(in.substring(0,1)){
                     case "c":
-                        System.out.println("You want to create");
-
-                        //output tables/columns
-                        //Get table name
-                        //Get input record
-                        //call create
+                        System.out.println("Select a table:");
+                        dbRead();
+                        dbCreate();
                         break;
                     case "r":
-                        System.out.println("You want to read");
                         dbRead();
-                        done = true;
                         break;
                     case "u":
                         System.out.println("You want to update");
@@ -59,8 +57,7 @@ public class Main {
                         //get row to delete
                         break;
                     default:
-                        System.out.println("We're done, then.");
-
+                        System.out.println("Goodbye...");
                         done = true;
                         break;
                 }
@@ -68,9 +65,7 @@ public class Main {
         }
 
 
-        /*
 
-        */
 
     }
 
@@ -79,13 +74,13 @@ public class Main {
         //get table to read
         //get columns to read
 
-        System.out.println("We will read now");
-
-        ResultSet tableList = dbquery("show tables");
+        ResultSet tableList = dbQuery("show tables");
 
         try{
+
+            int count = 0;
             while (tableList.next()){
-                System.out.println("Table: " + tableList.getString("Tables_In_JavaTest"));
+                System.out.println(++count + ") Table: " + tableList.getString("Tables_In_JavaTest"));
             }
         } catch (SQLException e){
             System.out.println("ERROR: Null result set");
@@ -93,19 +88,67 @@ public class Main {
             System.exit(0);
         }
 
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Which table would you like to read?");
+        String in = scanner.nextLine();
+        String qry = "Select * from " + in;
+        tableToManipulate = in;
 
 
+        ResultSet res = dbQuery(qry);
+        try{
+            for(int n = 1; n <= res.getMetaData().getColumnCount(); n++){
+                System.out.print(res.getMetaData().getColumnName(n) + "\t");
+            }
+            System.out.println();
 
+            while (res.next()){
+
+                for(int n = 1; n <= res.getMetaData().getColumnCount(); n++){
+                    System.out.print(res.getString(n) + "\t");
+                }
+                System.out.println();
+            }
+        } catch (SQLException e){
+            System.out.println("ERROR: Null result set");
+            e.printStackTrace();
+            System.exit(0);
+        }
+    }
+
+    public static void dbCreate(){
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter new row in the format col1val, col2val, col3val, ...");
+        String in = scanner.nextLine().trim();
+
+        //Get columns
+
+        String qry = "Select * from " + tableToManipulate; //Lazy way
+
+        ResultSet r = dbQuery(qry);
+        String columnSet = "(";
+        try{
+            for(int n = 1; n <= r.getMetaData().getColumnCount(); n++){
+                columnSet += r.getMetaData().getColumnName(n);
+
+                if (n < r.getMetaData().getColumnCount()){
+                    columnSet += ",";
+                }
+            }
+            columnSet += ")";
+        } catch (SQLException e){
+            System.out.println("ERROR: No columns");
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+        dbQuery("insert into " + tableToManipulate + columnSet + " values (" + in + ")");
 
 
     }
 
-
-
-
-
-
-    public static ResultSet dbquery(String q){
+    public static ResultSet dbQuery(String q){
 
         DBProp connProperties = new DBProp();
         String db = connProperties.db;
