@@ -74,7 +74,7 @@ public class Main {
         //get table to read
         //get columns to read
 
-        ResultSet tableList = dbQuery("show tables");
+        ResultSet tableList = dbQuery("show tables", "Read");
 
         try{
 
@@ -96,7 +96,7 @@ public class Main {
         tableToManipulate = in;
 
 
-        ResultSet res = dbQuery(qry);
+        ResultSet res = dbQuery(qry, "Read");
         try{
             for(int n = 1; n <= res.getMetaData().getColumnCount(); n++){
                 System.out.print(res.getMetaData().getColumnName(n) + "\t");
@@ -126,7 +126,7 @@ public class Main {
 
         String qry = "Select * from " + tableToManipulate; //Lazy way
 
-        ResultSet r = dbQuery(qry);
+        ResultSet r = dbQuery(qry, "Read");
         String columnSet = "(";
         try{
             for(int n = 1; n <= r.getMetaData().getColumnCount(); n++){
@@ -143,33 +143,49 @@ public class Main {
             System.exit(0);
         }
 
-        dbQuery("insert into " + tableToManipulate + columnSet + " values (" + in + ")");
+        dbQuery("insert into " + tableToManipulate + columnSet + " values (" + in + ")", "Exec");
 
 
     }
 
-    public static ResultSet dbQuery(String q){
+    public static ResultSet dbQuery(String q, String type){
+
 
         DBProp connProperties = new DBProp();
         String db = connProperties.db;
         String user = connProperties.user;
         String pw = connProperties.pw;
 
-        try {
-            Connection conn = DriverManager.getConnection(db, user, pw);
-            Statement qry = conn.createStatement();
-            ResultSet rs = qry.executeQuery(q);
+        if(type == "Read") {
+            try {
+                Connection conn = DriverManager.getConnection(db, user, pw);
+                Statement qry = conn.createStatement();
+                ResultSet rs = qry.executeQuery(q);
+                return rs;
 
-            return rs;
+
+            } catch (SQLException e) {
+                System.out.println("Query Error. Query: " + q);
+                e.printStackTrace();
+            }
+
+        } else if(type == "Exec"){
+            try {
+                Connection conn = DriverManager.getConnection(db, user, pw);
+                Statement qry = conn.createStatement();
+                qry.executeUpdate(q);
+                return null;
 
 
-        } catch (SQLException e){
-            System.out.println("Query Error. Query: " + q);
-            e.printStackTrace();
+            } catch (SQLException e) {
+                System.out.println("Query Error. Query: " + q);
+                e.printStackTrace();
+            }
+
         }
 
-        return null;
 
+        return null;
     }
 
 
